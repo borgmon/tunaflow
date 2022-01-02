@@ -1,0 +1,33 @@
+version: 0.1
+name: test app
+app-version: 0.1
+package-path: tunaflow-test
+
+schemas:
+  - name: input
+    payload:
+      msg: string
+      enabled: bool
+      nested:
+        value: int
+
+  - name: output
+    payload:
+      name: string
+      time: string
+      value: int
+
+flows:
+  - name: testflow
+    upstream: input
+    downstream: output
+    dependencies:
+      - time
+    mapping:
+      name: msg
+      time: msg
+      # time: |
+      #   {{
+      #   time.Now().Format("2006-01-02 15:04:05")
+      #   }}
+      value: nested.value

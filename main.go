@@ -17,6 +17,6 @@ package main
 
 import "github.com/borgmon/tunaflow/cmd"
 
-func main() {
+func main1() {
 	cmd.Execute()
 }
