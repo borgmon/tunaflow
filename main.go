@@ -16,11 +16,13 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/borgmon/tunaflow/cmd"
 	"github.com/borgmon/tunaflow/generator"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -29,12 +31,15 @@ func main1() {
 }
 func check(e error) {
 	if e != nil {
-		panic(e)
+		fmt.Printf("%+v", e)
 	}
 }
 
 func main() {
 	basePath := "example"
+	err := clean(basePath)
+	check(err)
+
 	configD, err := os.ReadFile(basePath + "/app.yaml")
 	check(err)
 	config := &generator.AppConfig{}
@@ -45,10 +50,18 @@ func main() {
 		Config:   config,
 		BasePath: basePath,
 	}
-
 	err = g.Prepare()
 	check(err)
+
 	err = g.GenTemplate()
 	check(err)
+
 	log.Println("Done")
+}
+
+func clean(basePath string) error {
+	if err := os.RemoveAll(basePath + "/build"); err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
 }

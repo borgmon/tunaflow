@@ -41,7 +41,7 @@ func (g *Generator) CreateStructFromYaml(reader io.Reader, typename string) ([]b
 		return nil, err
 	}
 	goCode = g.ReplaceInt2Int64(goCode)
-	err = os.WriteFile(g.BasePath+"/.tmp/"+typename+".go", goCode, 0644)
+	err = os.WriteFile(g.BasePath+"/build/schema/"+typename+".go", goCode, 0644)
 	if err != nil {
 		return nil, err
 	}
