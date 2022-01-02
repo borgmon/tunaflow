@@ -15,8 +15,40 @@ limitations under the License.
 */
 package main
 
-import "github.com/borgmon/tunaflow/cmd"
+import (
+	"log"
+	"os"
+
+	"github.com/borgmon/tunaflow/cmd"
+	"github.com/borgmon/tunaflow/generator"
+	"gopkg.in/yaml.v2"
+)
 
 func main1() {
 	cmd.Execute()
+}
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func main() {
+	basePath := "example"
+	configD, err := os.ReadFile(basePath + "/app.yaml")
+	check(err)
+	config := &generator.AppConfig{}
+	err = yaml.Unmarshal(configD, config)
+	check(err)
+
+	g := generator.Generator{
+		Config:   config,
+		BasePath: basePath,
+	}
+
+	err = g.Prepare()
+	check(err)
+	err = g.GenTemplate()
+	check(err)
+	log.Println("Done")
 }

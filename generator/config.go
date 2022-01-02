@@ -1,4 +1,4 @@
-package main
+package generator
 
 type AppConfig struct {
 	Version     string    `yaml:"version"`
