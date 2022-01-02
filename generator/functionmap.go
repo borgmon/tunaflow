@@ -45,6 +45,22 @@ func (g *Generator) ReplaceInt2Int64(data []byte) []byte {
 	d = strings.ReplaceAll(d, "int", "int64")
 	return []byte(d)
 }
-func (g *Generator) GetDownstreamName() string {
+func (g *Generator) GetDownStreamName() string {
 	return g.CapFirstLetter(g.Config.Schemas[1].Name)
+}
+func (g *Generator) GetUpStreamName() string {
+	return g.CapFirstLetter(g.Config.Schemas[0].Name)
+}
+func (g *Generator) ParseFieldValue(s string) string {
+	parts := strings.Split(s, ".")
+	result := ""
+
+	for _, part := range parts {
+		if result != "" {
+			result += "."
+		}
+		result += g.ParseFieldName(part)
+	}
+	return result
+
 }

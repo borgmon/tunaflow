@@ -35,7 +35,7 @@ func (g *Generator) Prepare() error {
 	if err = os.WriteFile(g.BasePath+"/build/go.mod", s, os.ModePerm); err != nil {
 		return errors.WithStack(err)
 	}
-	if err = g.CopyFile("template/go.sum", g.BasePath+"/build"); err != nil {
+	if err = g.CopyFile("./templates/go.sum", g.BasePath+"/build/go.sum"); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -83,19 +83,21 @@ func (g *Generator) GenTemplate() error {
 		return errors.WithStack(err)
 	}
 
-	// if err = g.GenEnDecoder(); err != nil {
-	// 	return errors.WithStack(err)
-	// }
+	if err = g.GenEnDecoder(); err != nil {
+		return errors.WithStack(err)
+	}
 
 	f, err := os.ReadFile("templates/mappingTemplate.go.tmpl")
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	var fm = &template.FuncMap{
-		"parseFieldName":    g.ParseFieldName,
-		"getFieldType":      g.GetFieldType,
-		"parseJSONPath":     g.ParseJSONPath,
-		"getDownstreamName": g.GetDownstreamName,
+		"ParseFieldName":    g.ParseFieldName,
+		"GetFieldType":      g.GetFieldType,
+		"ParseJSONPath":     g.ParseJSONPath,
+		"GetDownStreamName": g.GetDownStreamName,
+		"GetUpStreamName":   g.GetUpStreamName,
+		"ParseFieldValue":   g.ParseFieldValue,
 	}
 	m := make(map[string]string)
 	flowMapping, err := yaml.Marshal(g.Config.Flows[0].Mapping)
@@ -130,7 +132,7 @@ func (g *Generator) GenEnDecoder() error {
 		PkgPath: p.PkgPath,
 		PkgName: p.PkgName,
 		Types:   p.StructNames,
-		OutName: fullPath + "/coder.go",
+		OutName: fullPath + "/easyjson.go",
 	}
 
 	if err := jsonGenerator.Run(); err != nil {

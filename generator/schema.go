@@ -30,7 +30,7 @@ func (g *Generator) CreateStructFromYaml(reader io.Reader, typename string) ([]b
 	}
 	options := []jsonstruct.GeneratorOption{
 		jsonstruct.WithTypeName(g.CapFirstLetter(typename)),
-		jsonstruct.WithPackageName("main"),
+		jsonstruct.WithPackageName("schema"),
 		jsonstruct.WithOmitEmpty(jsonstruct.OmitEmptyAuto),
 		jsonstruct.WithSkipUnparseableProperties(false),
 		jsonstruct.WithUseJSONNumber(false),

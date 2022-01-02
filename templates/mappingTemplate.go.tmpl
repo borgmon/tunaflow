@@ -1,8 +1,38 @@
 package main
 
+import (
+	"example/schema"
+
+	"github.com/mailru/easyjson"
+)
 type Data []byte
- 
-func main(){
+
+func mapping(in *schema.{{GetUpStreamName}}) (*schema.{{GetDownStreamName}}, error) {
+	result := &schema.{{GetDownStreamName}}{
+		{{range $key, $val := .}}{{ParseFieldName $key}}: in.{{ParseFieldValue $val}},
+		{{end}}
+	}
+	return result, nil
+}
+func main() {
 	test := `{"msg":"hello","enabled":true,"nested":{"value":123}}`
-	println(test)
+
+	input := &schema.{{GetUpStreamName}}{}
+	data := Data([]byte(test))
+	if err := easyjson.Unmarshal(data, input); err != nil {
+		println(err)
+		return
+	}
+	ds, err := mapping(input)
+	if err != nil {
+		println(err)
+		return
+	}
+	result, err := easyjson.Marshal(ds)
+	if err != nil {
+		println(err)
+		return
+	}
+
+	println(string(result))
 }
