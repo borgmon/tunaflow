@@ -23,7 +23,7 @@ var (
 	config   = &AppConfig{}
 )
 
-func main2() {
+func main() {
 	configD, err := os.ReadFile(basePath + "/app.yaml")
 	check(err)
 	err = yaml.Unmarshal(configD, config)
@@ -89,7 +89,7 @@ func generateTemplate(s string, fm *template.FuncMap, data map[string]string) []
 func replaceType(data []byte) []byte {
 	s := string(data)
 	s = strings.ReplaceAll(s, "int", "111111")
-	s = strings.ReplaceAll(s, "bool", "true")
+	s = strings.ReplaceAll(s, "boolean", "true")
 	return []byte(s)
 }
 
