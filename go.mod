@@ -35,9 +35,4 @@ require (
 	github.com/mailru/easyjson v0.7.7
 )
 
-require (
-	github.com/go-errors/errors v1.4.1
-	github.com/josharian/intern v1.0.0 // indirect
-	github.com/juju/errors v0.0.0-20210818161939-5560c4c073ff
-	github.com/pkg/errors v0.9.1
-)
+require github.com/pkg/errors v0.9.1
