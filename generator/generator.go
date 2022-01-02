@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"html/template"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -34,7 +35,35 @@ func (g *Generator) Prepare() error {
 	if err = os.WriteFile(g.BasePath+"/build/go.mod", s, os.ModePerm); err != nil {
 		return errors.WithStack(err)
 	}
+	if err = g.CopyFile("template/go.sum", g.BasePath+"/build"); err != nil {
+		return errors.WithStack(err)
+	}
+
 	return nil
+}
+func (g *Generator) CopyFile(src, dst string) error {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return errors.WithStack(err)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	return errors.WithStack(err)
 }
 func (g *Generator) GenTemplate() error {
 	inY, err := g.CreateYaml(g.Config.Schemas[0].Payload)
