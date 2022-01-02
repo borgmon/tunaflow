@@ -1,0 +1,33 @@
+package main
+
+import (
+	"example/schema"
+
+	"github.com/mailru/easyjson"
+)
+func {{.Name}}Mapping(in *schema.{{ParseFieldName .Upstream}}) (*schema.{{ParseFieldName .Downstream}}, error) {
+	result := &schema.{{ParseFieldName .Downstream}}{
+		{{range $key, $val := .Mapping}}{{ParseFieldName $key}}: in.{{ParseFieldValue $val}},
+		{{end}}
+	}
+	return result, nil
+}
+
+func {{.Name}}Transform(data []byte) ([]byte, error) {
+	input := &schema.{{ParseFieldName .Upstream}}{}
+	if err := easyjson.Unmarshal(data, input); err != nil {
+		println(err)
+		return nil, err
+	}
+	ds, err := {{.Name}}Mapping(input)
+	if err != nil {
+		println(err)
+		return nil, err
+	}
+	result, err := easyjson.Marshal(ds)
+	if err != nil {
+		println(err)
+		return nil, err
+	}
+	return result, nil
+}

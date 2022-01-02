@@ -50,10 +50,14 @@ func main() {
 		Config:   config,
 		BasePath: basePath,
 	}
-	err = g.Prepare()
+
+	err = g.GenerateBase()
 	check(err)
 
-	err = g.GenTemplate()
+	err = g.GenerateSchema()
+	check(err)
+
+	err = g.GenerateTransformer()
 	check(err)
 
 	log.Println("Done")

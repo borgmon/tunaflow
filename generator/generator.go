@@ -1,16 +1,13 @@
 package generator
 
 import (
-	"bytes"
 	"html/template"
-	"io"
 	"os"
 	"path/filepath"
 
-	"github.com/mailru/easyjson/bootstrap"
-	"github.com/mailru/easyjson/parser"
+	"github.com/borgmon/tunaflow/funcmap"
+	"github.com/borgmon/tunaflow/schema"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 )
 
 type Generator struct {
@@ -18,124 +15,108 @@ type Generator struct {
 	BasePath string
 }
 
-func (g *Generator) Prepare() error {
+const BuildPath = "build"
+
+func (g *Generator) GetBuildPath() string { return filepath.Join(g.BasePath, BuildPath) }
+
+func (g *Generator) generateTemplate(fileName string) error {
+	t := &Template{
+		InPath:  filepath.Join(templatePath, fileName+".tmpl"),
+		OutPath: g.GetBuildPath(),
+		Data:    g.Config,
+	}
+	inFile, err := os.ReadFile(t.InPath)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	outFile, err := t.GenerateTemplate(inFile)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if err = os.WriteFile(filepath.Join(t.OutPath, fileName), outFile, os.ModePerm); err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func (g *Generator) GenerateBase() error {
 	if err := os.MkdirAll(g.BasePath+"/build/schema", os.ModePerm); err != nil {
 		return errors.WithStack(err)
 	}
-	d, err := os.ReadFile("templates/go.mod.tmpl")
-	if err != nil {
+	if err := g.generateTemplate("go.mod"); err != nil {
 		return errors.WithStack(err)
 	}
-	s, err := g.GenerateTemplate(string(d), &template.FuncMap{}, map[string]string{
-		"PackagePath": g.Config.PackagePath,
-	})
-	if err != nil {
+	if err := g.generateTemplate("router.go"); err != nil {
 		return errors.WithStack(err)
 	}
-	if err = os.WriteFile(g.BasePath+"/build/go.mod", s, os.ModePerm); err != nil {
+	if err := g.generateTemplate("main.go"); err != nil {
 		return errors.WithStack(err)
 	}
-	if err = g.CopyFile("./templates/go.sum", g.BasePath+"/build/go.sum"); err != nil {
+	if err := CopyFile("./templates/go.sum", g.BasePath+"/build/go.sum"); err != nil {
 		return errors.WithStack(err)
 	}
 
 	return nil
 }
-func (g *Generator) CopyFile(src, dst string) error {
-	sourceFileStat, err := os.Stat(src)
+
+func (g *Generator) generateSchema(schemaConfig *Schema) error {
+	yamlData, err := schema.CreateYamlFromObj(schemaConfig.Payload)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	if !sourceFileStat.Mode().IsRegular() {
-		return errors.WithStack(err)
-	}
-
-	source, err := os.Open(src)
+	structData, err := schema.CreateStructFromYaml(yamlData, schemaConfig.Name)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer destination.Close()
-	_, err = io.Copy(destination, source)
-	return errors.WithStack(err)
-}
-func (g *Generator) GenTemplate() error {
-	inY, err := g.CreateYaml(g.Config.Schemas[0].Payload)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	reader2 := bytes.NewReader(inY)
-	if g.CreateStructFromYaml(reader2, g.Config.Schemas[0].Name); err != nil {
-		return errors.WithStack(err)
-	}
-	outY, err := g.CreateYaml(g.Config.Schemas[1].Payload)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	reader1 := bytes.NewReader(outY)
-	if g.CreateStructFromYaml(reader1, g.Config.Schemas[1].Name); err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err = g.GenEnDecoder(); err != nil {
-		return errors.WithStack(err)
-	}
-
-	f, err := os.ReadFile("templates/mappingTemplate.go.tmpl")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	var fm = &template.FuncMap{
-		"ParseFieldName":    g.ParseFieldName,
-		"GetFieldType":      g.GetFieldType,
-		"ParseJSONPath":     g.ParseJSONPath,
-		"GetDownStreamName": g.GetDownStreamName,
-		"GetUpStreamName":   g.GetUpStreamName,
-		"ParseFieldValue":   g.ParseFieldValue,
-	}
-	m := make(map[string]string)
-	flowMapping, err := yaml.Marshal(g.Config.Flows[0].Mapping)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	if err = yaml.Unmarshal(flowMapping, &m); err != nil {
-		return errors.WithStack(err)
-	}
-	t, err := g.GenerateTemplate(string(f), fm, m)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	if err = os.WriteFile(g.BasePath+"/build/main.go", t, os.ModePerm); err != nil {
+	if err = os.WriteFile(filepath.Join(g.GetBuildPath(), "schema", schemaConfig.Name+".go"), structData, os.ModePerm); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
-func (g *Generator) GenEnDecoder() error {
-	p := parser.Parser{AllStructs: true}
-	pwd, err := os.Getwd()
+func (g *Generator) GenerateSchema() error {
+	for _, s := range g.Config.Schemas {
+		if err := g.generateSchema(s); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	if err := schema.GenEnDecoder(g.GetBuildPath()); err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func (g *Generator) GenerateTransformer() error {
+	for _, flow := range g.Config.Flows {
+		if err := g.generateTransformer(flow); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+	return nil
+}
+
+func (g *Generator) generateTransformer(flow *Flow) error {
+	fm := &template.FuncMap{
+		"ParseFieldName":  funcmap.ParseFieldName,
+		"ParseFieldValue": funcmap.ParseFieldValue,
+	}
+	t := &Template{
+		InPath:  filepath.Join(templatePath, "transform.go.tmpl"),
+		OutPath: g.GetBuildPath(),
+		Data:    flow,
+		FuncMap: fm,
+	}
+	inFile, err := os.ReadFile(t.InPath)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	fullPath := filepath.Join(pwd, g.BasePath+"/build/schema")
-
-	if err := p.Parse(fullPath, true); err != nil {
+	outFile, err := t.GenerateTemplate(inFile)
+	if err != nil {
 		return errors.WithStack(err)
 	}
-	jsonGenerator := &bootstrap.Generator{
-		PkgPath: p.PkgPath,
-		PkgName: p.PkgName,
-		Types:   p.StructNames,
-		OutName: fullPath + "/easyjson.go",
-	}
-
-	if err := jsonGenerator.Run(); err != nil {
+	if err = os.WriteFile(filepath.Join(t.OutPath, flow.Name+".go"), outFile, os.ModePerm); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil

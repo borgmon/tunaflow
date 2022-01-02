@@ -1,0 +1,36 @@
+package main
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+type Router struct {
+	router *gin.Engine
+}
+
+func InitRouter() *Router {
+	return &Router{gin.Default()}
+}
+
+func (r *Router) Start() {
+	{{range $key, $val := .Flows}}
+	r.router.POST("/{{$val.Name}}", r.{{$val.Name}}Handler)
+	{{end}}
+	r.router.Run("localhost:8080")
+}
+
+{{range $key, $val := .Flows}}
+func (r *Router) {{$val.Name}}Handler(c *gin.Context) {
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+	}
+	result, err := {{$val.Name}}Transform(data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+	}
+	c.Data(http.StatusOK, "application/json", result)
+}
+{{end}}

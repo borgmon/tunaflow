@@ -3,17 +3,34 @@ package generator
 import (
 	"html/template"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
-func (g *Generator) GenerateTemplate(s string, fm *template.FuncMap, data map[string]string) ([]byte, error) {
-	t, err := template.New("").Funcs(*fm).Parse(s)
-	if err != nil {
-		return nil, err
+type Template struct {
+	InPath  string
+	OutPath string
+	FuncMap *template.FuncMap
+	Data    interface{}
+}
+
+const templatePath = "./templates"
+
+func (t *Template) GenerateTemplate(templData []byte) ([]byte, error) {
+	templ := template.New("")
+
+	if t.FuncMap != nil {
+		templ = templ.Funcs(*t.FuncMap)
 	}
-	b := new(strings.Builder)
-	err = t.Execute(b, &data)
+	templ, err := templ.Parse(string(templData))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
+	}
+
+	b := new(strings.Builder)
+	err = templ.Execute(b, t.Data)
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
 	return []byte(b.String()), nil
 }
