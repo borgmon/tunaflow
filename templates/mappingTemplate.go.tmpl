@@ -8,7 +8,7 @@ import (
 
 type Data []byte
  
-func (data Data) mapping() (downstream Downstream, err error) {
+func (data Data) mapping() (downstream {{getDownstreamName }}, err error) {
 	{{range $key, $val := .}}
 	downstream.{{parseFieldName $key}}, err = jsonparser.Get{{getFieldType $key}}(data, []string{
 		{{range $seg := parseJSONPath $val}}"{{$seg}}",{{end}}

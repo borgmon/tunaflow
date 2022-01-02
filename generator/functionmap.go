@@ -45,3 +45,6 @@ func (g *Generator) ReplaceInt2Int64(data []byte) []byte {
 	d = strings.ReplaceAll(d, "int", "int64")
 	return []byte(d)
 }
+func (g *Generator) GetDownstreamName() string {
+	return g.CapFirstLetter(g.Config.Schemas[1].Name)
+}
