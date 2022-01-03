@@ -1,7 +1,7 @@
 ![Logo](./Tunaflow.png)
 
 ![Apache license](https://img.shields.io/badge/license-Apache-blue?style=flat-square)
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/borgmon/tunaflow/go/main)
+[![Build](https://github.com/borgmon/tunaflow/actions/workflows/go.yml/badge.svg)](https://github.com/borgmon/tunaflow/actions/workflows/go.yml)
 [![GoDoc](https://pkg.go.dev/badge/github.com/borgmon/tunaflow?status.svg)](https://pkg.go.dev/github.com/borgmon/tunaflow?tab=doc)
 
 # Tunaflow
