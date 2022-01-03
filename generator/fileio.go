@@ -4,11 +4,17 @@ import (
 	"io"
 	"os"
 
+	"github.com/borgmon/tunaflow/assets"
 	"github.com/pkg/errors"
 )
 
 func CopyFile(src, dst string) error {
-	sourceFileStat, err := os.Stat(src)
+	file, err := assets.AssetFiles.Open(src)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	sourceFileStat, err := file.Stat()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -17,17 +23,11 @@ func CopyFile(src, dst string) error {
 		return errors.WithStack(err)
 	}
 
-	source, err := os.Open(src)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer source.Close()
-
 	destination, err := os.Create(dst)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 	defer destination.Close()
-	_, err = io.Copy(destination, source)
+	_, err = io.Copy(destination, file)
 	return errors.WithStack(err)
 }

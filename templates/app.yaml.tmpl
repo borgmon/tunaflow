@@ -1,0 +1,27 @@
+version: 1
+name: {{.AppName}}
+app-version: v1.0
+package-path: {{.AppName}}
+
+schemas:
+  - name: input
+    payload:
+      stringField: string
+      boolField: boolean
+      nested:
+        value: int
+
+  - name: output
+    payload:
+      name: string
+      isFish: boolean
+      value: int
+
+flows:
+  - name: testflow
+    upstream: input
+    downstream: output
+    mapping:
+      name: stringField
+      isOpen: boolField
+      value: nested.value

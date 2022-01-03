@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 borgmon
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,57 +15,8 @@ limitations under the License.
 */
 package main
 
-import (
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/borgmon/tunaflow/cmd"
-	"github.com/borgmon/tunaflow/generator"
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
-)
-
-func main1() {
-	cmd.Execute()
-}
-func check(e error) {
-	if e != nil {
-		fmt.Printf("%+v", e)
-	}
-}
+import "github.com/borgmon/tunaflow/cmd"
 
 func main() {
-	basePath := "example"
-	err := clean(basePath)
-	check(err)
-
-	configD, err := os.ReadFile(basePath + "/app.yaml")
-	check(err)
-	config := &generator.AppConfig{}
-	err = yaml.Unmarshal(configD, config)
-	check(err)
-
-	g := generator.Generator{
-		Config:   config,
-		BasePath: basePath,
-	}
-
-	err = g.GenerateBase()
-	check(err)
-
-	err = g.GenerateSchema()
-	check(err)
-
-	err = g.GenerateTransformer()
-	check(err)
-
-	log.Println("Done")
-}
-
-func clean(basePath string) error {
-	if err := os.RemoveAll(basePath + "/build"); err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	cmd.Execute()
 }

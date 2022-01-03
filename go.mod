@@ -35,4 +35,8 @@ require (
 	github.com/mailru/easyjson v0.7.7
 )
 
-require github.com/pkg/errors v0.9.1
+require (
+	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
+	github.com/jessevdk/go-flags v1.5.0
+	github.com/pkg/errors v0.9.1
+)

@@ -2,7 +2,6 @@ package schema
 
 import (
 	"bytes"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const schemaPath = "schema"
+const SchemaPath = "schema"
 
 func CreateYamlFromObj(i interface{}) ([]byte, error) {
 	outY, err := yaml.Marshal(i)
@@ -31,7 +30,7 @@ func CreateStructFromYaml(yamlData []byte, typename string) ([]byte, error) {
 	}
 	options := []jsonstruct.GeneratorOption{
 		jsonstruct.WithTypeName(capFirstLetter(typename)),
-		jsonstruct.WithPackageName(schemaPath),
+		jsonstruct.WithPackageName(SchemaPath),
 		jsonstruct.WithOmitEmpty(jsonstruct.OmitEmptyAuto),
 		jsonstruct.WithSkipUnparseableProperties(false),
 		jsonstruct.WithUseJSONNumber(false),
@@ -64,13 +63,9 @@ func capFirstLetter(s string) string {
 	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
-func GenEnDecoder(buildPath string) error {
+func GenEnDecoder(pwd string) error {
 	p := parser.Parser{AllStructs: true}
-	pwd, err := os.Getwd()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	fullPath := filepath.Join(pwd, filepath.Join(buildPath, schemaPath))
+	fullPath := filepath.Join(pwd, SchemaPath)
 
 	if err := p.Parse(fullPath, true); err != nil {
 		return errors.WithStack(err)
