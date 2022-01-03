@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 	Use:   "tunaflow",
 	Short: "Generate a data transformation microservice with YAML!",
 	Long: `Tunaflow can help you generate a data transformation micro-service. 
-Do you like YAML hell? We love it too. That's why tunaflow is config-as-backend. 
+Do you like YAML hell? We love it too. That's why tunaflow is backend-as-config. 
 Run 'tunaflow init {project name}' to start`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
