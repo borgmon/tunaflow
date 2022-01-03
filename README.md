@@ -35,9 +35,42 @@ tunaflow apply
 to generate your project.
 
 ![Logo](./build.png)
+
+## YAML Config Example
+```yaml
+version: 1 # YAML Config version
+name: example # name of the project
+app-version: v1.0 # version of the project
+package-path: example # package path of the project, this is for go.mod
+
+schemas:
+  - name: input # name of the schema
+    payload: # json schema with [key](data type)
+      stringField: string
+      boolField: boolean
+      nested:
+        value: int
+
+  - name: output
+    payload:
+      name: string
+      isFish: boolean
+      value: int
+
+flows:
+  - name: myflow # name of the schema
+    upstream: input # schema name for the incoming data
+    downstream: output # schema name for the outgoing data
+    mapping: # actual transformation. [downstream field name](upstream field name aka where to get it)
+      name: stringField
+      isFish: boolField
+      value: nested.value
+
+```
 ## Road Map
 - [ ] json example file as input
 - [ ] subflow to handle one to many mappings
+- [ ] code injection in YAML to handle complex mappings (time format etc)
 - [ ] openapi doc generation
 - [ ] finish up go doc
 - [ ] validation for config
